@@ -1,0 +1,34 @@
+#Connect to your Azure subscription
+Connect-AzAccount
+
+# Define your policy rule in JSON format
+$policyRule = @{
+    if = @{
+        allOf = @(
+            @{
+                field = "type"
+                equals = "Microsoft.Storage/storageAccounts"
+            },
+            @{
+                field = "Microsoft.Storage/storageAccounts/enableBlobEncryption"
+                notEquals = "true"
+            }
+        )
+    }
+    then = @{
+        effect = "deny"
+        details = "Blob encryption is required for data at rest."
+    }
+}
+
+# Create the policy definition
+New-AzPolicyDefinition -Name "require-storage-encryption" `
+    -DisplayName "Require Encryption for Data at Rest" `
+    -Description "Require storage accounts to use encryption for data at rest." `
+    -PolicyRule $policyRule `
+    -Mode All
+
+# Assign the policy definition to a scope
+New-AzPolicyAssignment -Name "require-storage-encryption-assignment" `
+    -PolicyDefinition "require-storage-encryption" `
+    -Scope "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Storage/storageAccounts/{storageAccountName}"

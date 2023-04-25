@@ -1,0 +1,37 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {},
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Authorization/policyDefinitions",
+            "apiVersion": "2020-09-01",
+            "name": "no-public-ip-vm",
+            "properties": {
+                "displayName": "No Public IP for VM",
+                "description": "Prohibits the creation of public IP addresses for virtual machines.",
+                "mode": "Indexed",
+                "policyRule": {
+                    "if": {
+                        "allOf": [
+                            {
+                                "field": "type",
+                                "equals": "Microsoft.Compute/virtualMachines"
+                            },
+                            {
+                                "not": {
+                                    "field": "Microsoft.Compute/virtualMachines/networkProfile.networkInterfaces[].ipConfigurations[].publicIpAddress.id",
+                                    "equals": null
+                                }
+                            }
+                        ]
+                    },
+                    "then": {
+                        "effect": "deny"
+                    }
+                }
+            }
+        }
+    ]
+}
